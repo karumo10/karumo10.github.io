@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<meta charset="utf-8"> 
+<title>123</title> 
+</head>
+<body>
+
+<canvas id="canvas" width="642" height="700" style="border:0px solid #000000;"></canvas>
+<!-- <canvas id="canvas_bg" width="642" height="700" style="border:1px solid #000000;"></canvas> -->
+
+<script>
+function setRatio(mc){
+  // 获取像素比
+var getPixelRatio = function (context) {
+    var backingStore = context.backingStorePixelRatio ||
+        context.webkitBackingStorePixelRatio ||
+        context.mozBackingStorePixelRatio ||
+        context.msBackingStorePixelRatio ||
+        context.oBackingStorePixelRatio ||
+        context.backingStorePixelRatio || 1;
+    return (window.devicePixelRatio || 1) / backingStore;
+};
+
+var ratio = getPixelRatio(ctx);
+
+
+mc.style.width = mc.width + 'px';
+mc.style.height = mc.height + 'px';
+mc.width = mc.width * ratio;
+mc.height = mc.height * ratio;
+ 
+// 放大倍数
+ctx.scale(ratio, ratio);
+}
+
+
+
+
+var myCanvas = document.getElementById('canvas');
+var ctx = myCanvas.getContext('2d');
+var wid = myCanvas.width;
+var hei = myCanvas.height;
+
+
+setRatio(myCanvas);
+
+
+
+
+
+
+
+var isNotExpanded = true; // the canvas is not expanded.
+var chocolate = new Image();
+var grape = new Image();
+var enemy1 = new Image();
+var bgPic1 = new Image();
+var scoreSign = new Image();
+var scoreSign_over = new Image();
+
+
+// var catRun_l = new Image();
+// var catRun_r = new Image();
+// var catYell = new Image();
+// var catWin = new Image();
+// var isCatR = true;//at first facing to right
+// var catX = 0;
+
+var cat = {
+  X : 0,
+  width : 70,
+  height : 90,
+  Y : hei - 90,
+  a : 0.5,
+  v : 0,
+  isR : true,
+  run_r : new Image(),
+  run_l : new Image(),
+  yell : new Image(),
+  win : new Image(),
+  jump: function(){
+    this.v -= 5;
+  },
+  control: function(){
+    this.Y += this.v;
+    if (this.Y < hei-105){
+      this.v += this.a;
+    }
+    if (this.v > 0 && this.Y >= hei-105){ // not 90: there are a gap between the cat and the ground, or 
+      this.v = 0;
+    }
+  },
+  draw: function(){
+    this.control();
+    if (cat.isR) {ctx.drawImage(cat.run_r,cat.X,cat.Y,cat.width,cat.height);}
+    else {ctx.drawImage(cat.run_l,cat.X,cat.Y,cat.width,cat.height);}
+  }
+}
+
+var objNum = Math.floor(Math.random()*5);
+var objChoicer = Math.floor(Math.random()*3);
+var railOcpy = new Array(0,0,0,0,0);
+var railWid = new Array(wid/6-20, wid*2/6-20, wid*3/6-20, wid*4/6-20, wid*5/6-20);
+var railChoicer = 0;
+var objY = 0;
+var railRecord = new Array(100);
+for (var i=0; i<10000; i++){
+  railRecord[i] = new Array(5);
+  for (var j=0; j<5; j++) {
+    railRecord[i][j] = new Array(2);
+    railRecord[i][j][0] = 0;//record the type of objects. 1 grape 2 chocolate 3 enemy
+    railRecord[i][j][1] = railWid[j]; // record the x value of the objects.
+  }
+}
+
+var counter = 0;// the Math.floor(counter) row is falling.
+var dltRatio = 2;//counter += 1/dltRatio
+
+var scoreGrape = 0;
+var scoreChoco = 0;
+var scoreEnemy = 0;
+var scoreTotal = 0;
+
+var isGameOver = false;
+var gameOver = {
+  X : 0,
+  Y : hei/3,
+  width : wid,
+  height : hei/3,
+  a : 0.8,
+  v : 0,
+  grd : hei-15-hei/3,
+  bounceTimes : 0,
+  symbol : new Image(),
+  control : function(){
+    this.Y += this.v;
+    if (this.Y < this.grd){
+      this.v += this.a;
+    }
+    if (this.v > 0 && this.Y >= this.grd){ // not this.height: there are a gap between the sign and the ground, or 
+      this.v *= -0.8;
+      this.bounceTimes ++;
+      if (this.bounceTimes >= 15) {this.v = 0;}
+    }
+  },
+  draw : function(){
+    this.control();
+    ctx.drawImage(this.symbol,this.X,this.Y,this.width,this.height);
+  }
+
+}
+
+
+var sign_over = {
+  X : wid/3,
+  Y : -1200, // to -800
+  width : wid/3,
+  height : 1200,
+  a : (5**2)/(2*400), //v^2 = 2*a*x
+  v : 5,
+  symbol : new Image(),
+  hint : "Your score: " + scoreTotal,
+  h_grape : "x " + scoreGrape,
+  h_choco : "x " + scoreChoco,
+  h_enemy : "x " + scoreEnemy,
+  control : function(){
+    this.hint = "Your score: " + scoreTotal,
+    this.h_grape = "x " + scoreGrape,
+    this.h_choco = "x " + scoreChoco,
+    this.h_enemy = "x " + scoreEnemy,
+    this.Y += this.v;
+    this.v -= this.a;
+    if (this.Y+800 <= 3 && this.Y+800 >= -3) {this.a = 0; this.v = 0;}
+  },
+  draw : function(){
+    this.control();
+    ctx.drawImage(this.symbol,this.X,this.Y,this.width,this.height);
+    ctx.font = "20px Comic Sans MS"; 
+    ctx.fillText(this.hint,this.X+40,this.Y+1070);
+    ctx.drawImage(grape,this.X+67,this.Y+1085,30,30);
+    ctx.fillText(this.h_grape,this.X+104,this.Y+1105);
+    ctx.drawImage(chocolate,this.X+63,this.Y+1113,37,35);
+    ctx.fillText(this.h_choco,this.X+104,this.Y+1135);
+    ctx.drawImage(enemy1,this.X+68,this.Y+1138,32,35);
+    ctx.fillText(this.h_enemy,this.X+104,this.Y+1165);
+    ctx.drawImage(cat.win,wid/3+95,this.Y+1200-310,100,160);
+  }
+
+
+
+}
+
+function drop() {
+  if (counter < 750) {objY += 2;} //the lowest (first row starting to fall) row
+  else if (counter < 1000 && counter >= 750) {objY += 2.3;}
+  else if (counter >= 1000) {objY += 2.6;}
+}
+
+function judge(dx,dy,x,y){
+  if (cat.X-dx <= x && x <= cat.X+cat.width-15 && cat.Y-dy <= y && y <= cat.Y+cat.height-5) {
+    return true;
+  } else {return false;}
+}
+
+function init(){
+  chocolate.src = 'pic/chocolate.jpg';
+  grape.src = 'pic/grape.jpg';
+  enemy1.src = 'pic/enemy1.png';
+  cat.run_l.src = 'pic/move_left.png';
+  cat.run_r.src = 'pic/move_right.png';
+  cat.yell.src = 'pic/yelling.png';
+  cat.win.src = 'pic/victory.png';
+  bgPic1.src = 'pic/bgpic1_wthotgrey.jpg';
+  scoreSign.src = 'pic/score_sign_short.png';
+  gameOver.symbol.src = 'pic/gameover_1_1.png';
+  sign_over.symbol.src = 'pic/score_sign_long.jpg';
+  window.requestAnimationFrame(draw);
+}
+
+function clear(){
+  if (isNotExpanded) {
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.fillRect(0,0,wid,hei);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(0,0,wid*2,hei);
+  }
+}
+
+function scoreRefresh(){
+  var hint = "Your score: " + scoreTotal;
+  ctx.drawImage(scoreSign,wid/4,-40,wid/2,160);
+  ctx.font = "20px Comic Sans MS";
+  ctx.fillText(hint,wid/4+100,65);
+}
+
+
+
+
+function draw_over() {
+  clear();
+  ctx.drawImage(bgPic1,0,0,642,700);
+  sign_over.draw();
+  gameOver.draw();
+  
+  window.requestAnimationFrame(draw_over);
+
+}
+
+
+
+
+
+function draw() {
+  // ctx.globalCompositeOperation = 'destination-over';//相遇时候的覆盖模式
+  // ctx.clearRect(0,0,300,400); // clear canvas
+  
+  clear();
+  
+  drop();
+
+  
+  
+  ctx.drawImage(bgPic1,0,0,642,700);
+  scoreRefresh();
+
+  if (Number.isInteger(counter)){
+
+    objNum = Math.floor(Math.random()*5);
+    for (var i=0;i<objNum;i++){  
+      objChoicer = Math.floor(Math.random()*3);
+      railChoicer = Math.floor(Math.random()*5); // which rail?
+      while (railOcpy[railChoicer] != 0) {
+        railChoicer = Math.floor(Math.random()*5); // which rail?
+      } 
+      railOcpy[railChoicer] = objChoicer+1; // railOcpy: 1 grape; 2 chocolate; 3 enemy.
+      switch (objChoicer) {
+        case 0:
+          ctx.drawImage(grape,railWid[railChoicer],-counter*80+objY,30,30);
+          break;
+        case 1:
+          ctx.drawImage(chocolate,railWid[railChoicer],-counter*80+objY,50,50);
+          break;
+        case 2:
+          ctx.drawImage(enemy1,railWid[railChoicer],-counter*80+objY,40,50);//80 is the distance between two lines.
+          break;
+      }
+    
+    }
+
+
+    /*record the rail occupation circumstance*/
+    for (var i = 0; i < 5; i++) {
+      railRecord[counter][i][0] = railOcpy[i];
+    }
+  }
+
+
+
+  /*Draw the objects below the current row*/
+  for (var i = 0; i < Math.floor(counter); i++) {  // for (var i = 0; i < counter; i++) {
+    if ((-i*80 + objY) <= hei){ // if the object is outside the canvas(downside) then dont draw them
+      for (j = 0; j < 5; j++) {
+        switch (railRecord[i][j][0]) {
+        case 1:
+          ctx.drawImage(grape,railRecord[i][j][1],-i*80+objY,30,30);
+          break;
+        case 2:
+          ctx.drawImage(chocolate,railRecord[i][j][1],-i*80+objY,50,50);
+          break;
+        case 3:
+          ctx.drawImage(enemy1,railRecord[i][j][1],-i*80+objY,40,50);
+          break;
+        }
+      }
+    }
+  }
+  
+
+  for (var i = 0; i <= Math.floor(counter); i++) { //for (var i = 0; i <= counter; i++) {
+    for (var j = 0; j < 5; j++) {
+      var isEaten = false;
+      switch (railRecord[i][j][0]) {
+        case 1:
+          isEaten = judge(30,30,railRecord[i][j][1],objY-i*80);
+          break;
+        case 2:
+          isEaten = judge(50,50,railRecord[i][j][1],objY-i*80);
+          break;
+        case 3:
+          isEaten = judge(40,50-20,railRecord[i][j][1],objY-i*80);
+          break;
+      }
+      if (isEaten) {
+        switch (railRecord[i][j][0]) {
+          case 1: scoreGrape ++; break;
+          case 2: scoreChoco ++; break;
+          case 3: scoreEnemy ++; break;
+        }
+        railRecord[i][j][0] = 0;
+      }
+    }
+  }
+  
+  for(var i = 0; i < 5; i++) {
+    railOcpy[i] = false;
+  }
+  
+
+  counter+=1/dltRatio;
+  
+  scoreTotal = scoreGrape * 3 + scoreChoco * 2 - scoreEnemy * 5;
+
+  /*size of the models*/
+  // ctx.drawImage(grape,0,0,30,30);
+  // ctx.drawImage(chocolate,50,50,50,50);
+  // ctx.drawImage(enemy1,50,90,40,50);
+  // cat: 70*90
+  
+  cat.draw();
+
+  var isTouched = judge(70,10,wid,hei-170);
+  if (isTouched && isNotExpanded) {
+    //surprise.
+  }
+
+  if (counter >= 2000) {isGameOver = true;}
+  if(!isGameOver) {window.requestAnimationFrame(draw);}
+  else {window.requestAnimationFrame(draw_over);}
+}
+
+
+init();
+
+
+
+document.addEventListener('keydown',function(e){
+  switch (e.keyCode){
+    case 65:
+      if (cat.X > 0){cat.X -= 15;}
+      cat.isR = false;
+      break;
+    case 68:
+      if (cat.X < wid+20){cat.X += 15;}
+      cat.isR = true;
+      break;
+    case 32:
+      cat.jump();
+      break;
+  }
+});
+
+
+</script>
+</body>
+</html>
