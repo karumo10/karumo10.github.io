@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head> 
+<link rel="stylesheet" type="text/css" href="style.css">
 <meta charset="utf-8"> 
 <title>深夜食堂</title> 
 <style type="text/css">
@@ -13,14 +14,21 @@
     }
   </style>
 </head>
-<body bgcolor="white">
-<h1>这是karumo的深夜食堂！</h1>
+<body>
+
+<div class="header"><h1>这是karumo的深夜食堂！</h1></div>
+<div class="topnav">
+        <a href="https://karumo10.github.io">BACK</a>
+        <a href="https://karumo10.github.io/RedHeaded_League">Red-Headed League</a>
+        <a href="https://www.zhihu.com/people/qia-ru-mo" style="float: right">Find me@zhihu</a>
+    </div>
+<div class="card">
 <p>A键左移，D键右移，空格键起跳。（要注意小汤姆不喜欢吃辣椒哦!）</p>
 <div class = "container">
   <canvas id="canvas" width="642" height="700" style="border:0px solid #000000;"></canvas>
 </div>
 <!-- <canvas id="canvas_bg" width="642" height="700" style="border:1px solid #000000;"></canvas> -->
-
+</div>
 <script>
 function setRatio(mc){
   // 获取像素比
