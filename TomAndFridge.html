@@ -16,14 +16,14 @@
 </head>
 <body>
 
-<div class="header"><h1>这是karumo的深夜食堂！</h1></div>
+<div class="header"><h1>Tom & Fridge</h1></div>
 <div class="topnav">
         <a href="https://karumo10.github.io">BACK</a>
         <a href="https://karumo10.github.io/RedHeaded_League">Red-Headed League</a>
         <a href="https://www.zhihu.com/people/qia-ru-mo" style="float: right">Find me@zhihu</a>
     </div>
 <div class="card">
-<p>A键左移，D键右移，空格键起跳。（要注意小汤姆不喜欢吃辣椒哦!）</p>
+<p>A for left; D for right; Space for jumping.</p>
 <div class = "container">
   <canvas id="canvas" width="642" height="700" style="border:0px solid #000000;"></canvas>
 </div>
@@ -380,10 +380,10 @@ function draw() {
   
   cat.draw();
 
-  var isTouched = judge(70,10,wid,hei-170);
-  if (scoreTotal >= 50 && isTouched && isNotExpanded) {
-    window.location.href = "jump/build/index.html";
-  }
+  // var isTouched = judge(70,10,wid,hei-170);
+  // if (scoreTotal >= 50 && isTouched && isNotExpanded) {
+  //   window.location.href = "jump/build/index.html";
+  // }
 
   if (counter >= 2000) {isGameOver = true;}
   if(!isGameOver) {window.requestAnimationFrame(draw);}
